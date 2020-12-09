@@ -1,6 +1,11 @@
 # Author: Trevor Davis
 # Twitter: @vTrevorDavis
 
+
+# Powershell 7 Is Required
+
+
+
 #######################################
 # Define SKU w/ AVS
 # at the moment, that is the only sku, so hard-coding this into the script.
