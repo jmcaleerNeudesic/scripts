@@ -247,8 +247,7 @@ Write-Host -ForegroundColor Yellow "---- Confirm The Following Is Accurate ---- 
     Write-Host -NoNewline -ForegroundColor Green "Address Block: "
     Write-Host -ForegroundColor White $addressblock
 
-    Write-Host -NoNewline -ForegroundColor Green "Internet Enabled/Disabled: 
-    "
+    Write-Host -NoNewline -ForegroundColor Green "Internet Enabled/Disabled: "
     Write-Host -ForegroundColor White $internet
 
 
@@ -258,7 +257,9 @@ Write-Host -ForegroundColor Yellow "---- Confirm The Following Is Accurate ---- 
  
 $begindeployment = Read-Host -Prompt "
 Would you like to begin the Azure VMware Solution deployment (Y/N)"
- 
+
+Start-Sleep -Seconds 2700
+
 if ("y" -eq $begindeployment)
 {
    
