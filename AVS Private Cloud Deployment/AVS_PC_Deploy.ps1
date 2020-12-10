@@ -268,7 +268,7 @@ write-host "
 The start time of the deployment was $deploymentkickofftime
 "
 
-New-AzVMWarePrivateCloud -Name $resourcename -ResourceGroupName $rgfordeployment -SubscriptionId $sub -NetworkBlock $addressblock -Sku $skus -Location $region -NsxtPassword $nsxpassword -VcenterPassword $vcenterpassword -managementclustersize $numberofhosts -Internet $internet
+New-AzVMWarePrivateCloud -Name $resourcename -ResourceGroupName $rgfordeployment -SubscriptionId $sub -NetworkBlock $addressblock -Sku $skus -Location $region -NsxtPassword $nsxpassword -VcenterPassword $vcenterpassword -managementclustersize $numberofhosts -Internet $internet -NoWait 
 
 $mypcinfo = get-azvmwareprivatecloud -Name $resourcename -ResourceGroupName $rgfordeployment
 $currentprovisioningstate = $mypcinfo.ProvisioningState
