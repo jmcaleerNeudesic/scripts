@@ -13,14 +13,10 @@
 $skus = "AV36"
 
 
-#######################################
+####################################### 
 # Define Azure Regions w/ AVS
 #######################################
-$regions = "
-australiaeast
-westeurope
-eastus
-westus"
+$regionlist = @("australiaeast","westeurope","eastus","westus")
 
 #######################################
 # Connect To Azure
@@ -28,11 +24,18 @@ westus"
 Clear-Host
 $sub = Read-Host -Prompt "What is the Subscription ID where you want to deploy the Azure VMware Solution Private Cloud?"
 
-$regions
-$region = Read-Host -Prompt "
-What region will the Azure VMware Solution Private Cloud be deployed?
-  
-Type a region exactly at it appears from the list above"
+clear-host
+$Count = 0
+
+ foreach ($region in $regionlist) {
+    Write-Host "$Count - $region"
+    $Count++
+ }
+
+$regionselected = Read-Host -Prompt "
+Select the number which corresponds to the region where the Azure VMware Solution Private Cloud will be deployed"
+$regiontouse = $regionlist["$regionselected"]
+$regionfordeployment = $regiontouse
 
 #######################################
 # Validate Subscription Readiness for AVS
@@ -54,7 +57,7 @@ Start-Sleep 1}
 
 Connect-AzAccount -Subscription $sub
 
-$quota = Test-AzVMWareLocationQuotaAvailability -Location $region
+$quota = Test-AzVMWareLocationQuotaAvailability -Location $regionfordeployment
 
 if ("Enabled" -eq $quota.Enabled)
 {
@@ -66,7 +69,7 @@ For ($Time; $Time -gt 0; $Time--) {
 $min = [int](([string]($Time/60)).split('.')[0])
 clear-host
 $seconds = " "  + ($Time % 60) + " "
-Write-Host -ForegroundColor Yellow  "$sub has been validated, Azure VMware Solution is ENABLED on this subscription ... please wait"
+Write-Host -ForegroundColor Yellow  "Subscription $sub has been validated, Azure VMware Solution is ENABLED ... please wait"
 Start-Sleep 1
 }
 
@@ -110,8 +113,7 @@ $Count = 0
  }
 
 $rgselection = Read-Host -Prompt "
-Identify the Resource Group where you want to deploy the Azure VMware Solution Private Cloud.
-Choose the number to the left of the Resource Group name"
+Select the number which corresponds to the Resource Group where the Azure VMware Solution Private Cloud will be deployed"
 $rgtouse = $RGs["$rgselection"].ResourceGroupName
 $rgfordeployment = $rgtouse
 
@@ -120,7 +122,7 @@ else
 {
 $rgnewname = Read-Host -Prompt "What name do you want to give to the new Resource Group?"
 $rgfordeployment = $rgnewname
-New-AzResourceGroup -Name $rgnewname -Location $region
+New-AzResourceGroup -Name $rgnewname -Location $regionfordeployment
 
  }
 
@@ -225,7 +227,7 @@ Write-Host -ForegroundColor Yellow "---- Confirm The Following Is Accurate ---- 
     Write-Host -ForegroundColor White $rgfordeployment
     
     Write-Host -NoNewline -ForegroundColor Green "Location: "
-    Write-Host -ForegroundColor White $region
+    Write-Host -ForegroundColor White $regionfordeployment
 
     Write-Host -NoNewline -ForegroundColor Green "Resource Name: "
     Write-Host -ForegroundColor White $resourcename
@@ -253,22 +255,47 @@ Write-Host -ForegroundColor Yellow "---- Confirm The Following Is Accurate ---- 
 #######################################
 # Deployment of AVS Private Cloud
 #######################################
-write-host "Deployment will take approximately 3 hours, this Powershell script will pause until the deployment completes.
-
-When the Private Cloud deployment completes, you will be notified." -foregroundcolor Magenta
  
 $begindeployment = Read-Host -Prompt "
 Would you like to begin the Azure VMware Solution deployment (Y/N)"
  
 if ("y" -eq $begindeployment)
 {
+   
+Write-Host -Foregroundcolor Red " 
+The script will pause for up to 5 minutes ... please wait
+"
 
 $deploymentkickofftime = get-date -format "hh:mm"
-write-host "
+
+New-AzVMWarePrivateCloud -Name $resourcename -ResourceGroupName $rgfordeployment -SubscriptionId $sub -NetworkBlock $addressblock -Sku $skus -Location $regionfordeployment -NsxtPassword $nsxpassword -VcenterPassword $vcenterpassword -managementclustersize $numberofhosts -Internet $internet -NoWait 
+}
+
+#######################################
+# Checking Deployment Status
+#######################################
+
+$provisioningstate = get-azvmwareprivatecloud -Name $resourcename -ResourceGroupName $rgfordeployment
+$currentprovisioningstate = $provisioningstate.ProvisioningState
+$timeStamp = Get-Date -Format "hh:mm"
+
+Write-Host -foregroundcolor Magenta "
+The Azure VMware Solution Private Cloud $resourcename deployment is underway and will take approximately 3 hours, the status of the deployment will update every 10 minutes.
+
 The start time of the deployment was $deploymentkickofftime
 "
 
-New-AzVMWarePrivateCloud -Name $resourcename -ResourceGroupName $rgfordeployment -SubscriptionId $sub -NetworkBlock $addressblock -Sku $skus -Location $region -NsxtPassword $nsxpassword -VcenterPassword $vcenterpassword -managementclustersize $numberofhosts -Internet $internet -NoWait 
+while ("Succeeded" -ne $currentprovisioningstate)
+{
+$timeStamp = Get-Date -Format "hh:mm"
+"$timestamp - Current Status: $currentprovisioningstate "
+Start-Sleep -Seconds 600
+$provisioningstate = get-azvmwareprivatecloud -Name $resourcename -ResourceGroupName $rgfordeployment
+$currentprovisioningstate = $provisioningstate.ProvisioningState
+}
+
+if("Succeeded" -eq $currentprovisioningstate)
+{
 
 $mypcinfo = get-azvmwareprivatecloud -Name $resourcename -ResourceGroupName $rgfordeployment
 $currentprovisioningstate = $mypcinfo.ProvisioningState
@@ -281,13 +308,7 @@ $pcinternet = $mypcinfo.Internet
 $pcclustersize = $mypcinfo.ManagementClusterSize
 $pcsku = $mypcinfo.SkuName
 
-}
-
-
-if ("Succeeded" -eq $currentprovisioningstate)
-{
-$timeStamp = Get-Date -Format "hh:mm"
-write-host -ForegroundColor Green "The Azure VMware Solution Private Cloud has been successfully deployed."
+Write-host -ForegroundColor Green "The Azure VMware Solution Private Cloud has been successfully deployed."
 write-host "=======================================================================
 "
 Write-Host -NoNewline -ForegroundColor Green "Private Cloud Name: "
@@ -326,9 +347,8 @@ Write-Host -ForegroundColor White "The same password as your vCenter password yo
 
 else
 {
-Write-Host -ForegroundColor Red "$timestamp - Current Status: $currentprovisioningstate 
+Write-Host -ForegroundColor Red "$timestamp - Current Status: $currentprovisioningstate
 
-There appears to be a problem with the deployment of Azure VMware Solution Private Cloud $resourcename in subscription $sub
+There appears to be a problem with the deployment of Azure VMware Solution Private Cloud $resourcename in subscription $sub "
 
-"}
-
+}
