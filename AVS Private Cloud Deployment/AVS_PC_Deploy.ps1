@@ -258,7 +258,6 @@ Write-Host -ForegroundColor Yellow "---- Confirm The Following Is Accurate ---- 
 $begindeployment = Read-Host -Prompt "
 Would you like to begin the Azure VMware Solution deployment (Y/N)"
 
-Start-Sleep -Seconds 2700
 
 if ("y" -eq $begindeployment)
 {
@@ -309,13 +308,16 @@ $pcinternet = $mypcinfo.Internet
 $pcclustersize = $mypcinfo.ManagementClusterSize
 $pcsku = $mypcinfo.SkuName
 
-Write-host -ForegroundColor Green "The Azure VMware Solution Private Cloud has been successfully deployed."
+Write-host -ForegroundColor Green "
+The Azure VMware Solution Private Cloud has been successfully deployed."
 write-host "=======================================================================
 "
 Write-Host -NoNewline -ForegroundColor Green "Private Cloud Name: "
 Write-Host -ForegroundColor White $pcname
 Write-Host -NoNewline -ForegroundColor Green "Azure Region: "
 Write-Host -ForegroundColor White $pclocation
+Write-Host -NoNewline -ForegroundColor Green "Azure Resource Group: "
+Write-Host -ForegroundColor White $rgfordeployment
 Write-Host -NoNewline -ForegroundColor Green "Private Cloud Cluster Size: "
 Write-Host -ForegroundColor White $pcclustersize
 Write-Host -NoNewline -ForegroundColor Green "Private Cloud Cluster SKU: "
