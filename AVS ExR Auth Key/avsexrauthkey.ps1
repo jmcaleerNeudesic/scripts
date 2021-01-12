@@ -4,6 +4,90 @@
 
 # Powershell 7 Is Required
 
+#######################################
+# Connect To Azure
+#######################################
+Clear-Host
+$sub = Read-Host -Prompt "What is the Subscription ID where the Private Cloud exists?"
+Connect-AzAccount -Subscription $sub
+
+#######################################
+# Choose Private Cloud
+#######################################
+$PCs = Get-AzVMWarePrivateCloud
+$Count = 0
+
+ foreach ($pc in $PCs) {
+    $PCname = $pc.Name
+    Write-Host "$Count - $PCname"
+    $Count++
+ }
+ $pcselection = Read-Host -Prompt "
+ Select the number which corresponds to the Private Cloud which needs an Auth Key generated."
+ $privatecloud = $PCs["$pcselection"].Name
+
+$pcresourcegroup = Get-AzResource -Name $privatecloud
+$pcresourcegroup = $pcresourcegroup.ResourceGroupName
+$pcresourcegroup
+
+#######################################
+# Generate Auth Key
+#######################################
+$authkeyname = Read-Host -Prompt "
+Provide a friendly name for the auth key."
+
+New-AzVMWareAuthorization -Name $authkeyname -PrivateCloudName $privatecloud -ResourceGroupName $pcresourcegroup
+
+###################################################
+# Choose Which RG the Virtual Network Gateway Is In
+###################################################
+{
+    $RGs = Get-AzResourceGroup
+    $Count = 0
+    
+     foreach ($rg in $RGs) {
+        $RGname = $rg.ResourceGroupName
+        Write-Host "$Count - $RGname"
+        $Count++
+     }
+    
+    $rgselection = Read-Host -Prompt "
+    Select the number which corresponds to the Resource Group where the Azure VMware Solution Private Cloud will be deployed"
+    $rgtouse = $RGs["$rgselection"].ResourceGroupName
+    $rgfordeployment = $rgtouse
+
+
+#######################################
+# Choose The ExR GW To Connect AVS ExR
+#######################################
+$vnetgws = Get-AzVirtualNetworkGateway -ResourceGroupName $pcresourcegroup 
+clear-host
+$Count = 0
+
+ foreach ($vnetgw in $vnetgws) {
+    $vnetgwname = $vnetgw.Name
+    Write-Host "$Count - $vnetgwname"
+    $Count++
+ }
+
+ $vnetgwselection = Read-Host -Prompt "
+ Select the number which corresponds to the Virtual Network Gateway where the Azure VMware Solution ExpressRoute will connect"
+ $vnetgwforavs = $vnetgws["$vnetgwselection"].Name
+
+#######################################
+# Connect AVS ExR to vNet Gateway
+#######################################
+
+$vnetgwcon = Read-Host -Prompt "
+Provide a friendly name for the Virtual Network Gateway Connection which is being created to connect Azure VMware Solution to your Virtual Network."
+
+New-AzVirtualNetworkGatewayConnection -Name $vnetgwcon -ResourceGroupName $RG1 -VirtualNetworkGateway1 
+$vnetgw1 -Location $loc1 -ConnectionType ExpressRoute -PeerId kdkdkdkd -AuthorizationKey kdkdkdkd
+
+
+
+
+
 
 
 #######################################
@@ -18,24 +102,7 @@ $skus = "AV36"
 #######################################
 $regionlist = @("australiaeast","westeurope","eastus","westus")
 
-#######################################
-# Connect To Azure
-#######################################
-Clear-Host
-$sub = Read-Host -Prompt "What is the Subscription ID where you want to deploy the Azure VMware Solution Private Cloud?"
 
-clear-host
-$Count = 0
-
- foreach ($region in $regionlist) {
-    Write-Host "$Count - $region"
-    $Count++
- }
-
-$regionselected = Read-Host -Prompt "
-Select the number which corresponds to the region where the Azure VMware Solution Private Cloud will be deployed"
-$regiontouse = $regionlist["$regionselected"]
-$regionfordeployment = $regiontouse
 
 #######################################
 # Validate Subscription Readiness for AVS
@@ -52,6 +119,8 @@ Write-Host -ForegroundColor Green  "To validate subscription readiness for Azure
 
 # Deployment of Azure VMware Solution will continue in $seconds seconds""
 Start-Sleep 1}
+
+
 
 Connect-AzAccount -Subscription $sub
 
@@ -100,20 +169,7 @@ clear-host
 
 
 if ( "E" -eq $rgnew )
-{
-$RGs = Get-AzResourceGroup
-$Count = 0
 
- foreach ($rg in $RGs) {
-    $RGname = $rg.ResourceGroupName
-    Write-Host "$Count - $RGname"
-    $Count++
- }
-
-$rgselection = Read-Host -Prompt "
-Select the number which corresponds to the Resource Group where the Azure VMware Solution Private Cloud will be deployed"
-$rgtouse = $RGs["$rgselection"].ResourceGroupName
-$rgfordeployment = $rgtouse
 
 }
 else
