@@ -42,11 +42,11 @@ $regionfordeployment = $regiontouse
 clear-host
 
 [int]$Time = 5
-$Lenght = $Time / 100
+# $Lenght = $Time / 100
 For ($Time; $Time -gt 0; $Time--) {
-$min = [int](([string]($Time/60)).split('.')[0])
+# $min = [int](([string]($Time/60)).split('.')[0])
 clear-host
-$seconds = " "  + ($Time % 60) + " "
+# $seconds = " "  + ($Time % 60) + " "
 Write-Host -ForegroundColor Green  "To validate subscription readiness for Azure VMware Solution Private Cloud you will need to log into Azure....please wait" 
 
 # Deployment of Azure VMware Solution will continue in $seconds seconds""
@@ -61,11 +61,11 @@ if ("Enabled" -eq $quota.Enabled)
 
 
 [int]$Time = 10
-$Lenght = $Time / 100
+# $Lenght = $Time / 100
 For ($Time; $Time -gt 0; $Time--) {
-$min = [int](([string]($Time/60)).split('.')[0])
+# $min = [int](([string]($Time/60)).split('.')[0])
 clear-host
-$seconds = " "  + ($Time % 60) + " "
+# $seconds = " "  + ($Time % 60) + " "
 Write-Host -ForegroundColor Yellow  "Subscription $sub has been validated, Azure VMware Solution is ENABLED ... please wait"
 Start-Sleep 1
 }
@@ -79,6 +79,8 @@ Write-Host -ForegroundColor Red "
 Subscription $sub is NOT ENABLED for Azure VMware Solution, please visit the following site for guidance on how to get this service enabled for your subscription.
 
 https://docs.microsoft.com/en-us/azure/azure-vmware/enable-azure-vmware-solution"
+
+Exit
 
 }
 
@@ -141,19 +143,20 @@ $numberofhosts = 3
 #######################################
 # Enable or Disable Internet
 #######################################
-Clear-Host
-Write-Host "By default, all traffic that is sourced from the Internet of course is blocked, i.e.,  firewall deny all inbound.
-You can, if you need, at a later time configure inbound access to Azure VMware Solution Private Cloud VMs.
+# Clear-Host
+# Write-Host "By default, all traffic that is sourced from the Internet of course is blocked, i.e.,  firewall deny all inbound.
+# You can, if you need, at a later time configure inbound access to Azure VMware Solution Private Cloud VMs.
+# 
+# However, you can choose to ENABLE or DISABLE access to the Internet from your Azure VMware Solution Private Cloud.  
+# Meaning, do you want the VMs in your Private Cloud to be able to source a connection to an Internet destination?
+# "
 
-However, you can choose to ENABLE or DISABLE access to the Internet from your Azure VMware Solution Private Cloud.  
-Meaning, do you want the VMs in your Private Cloud to be able to source a connection to an Internet destination?
-"
-
-$internetenabledyesorno = Read-Host -Prompt "Do you want Internet access enabled for your Private Cloud? You can always change this configuration after deployment. (Y/N)"
-if("Y" -eq $internetenabledyesorno)
-{$internet = "Enabled"}
-else 
-{$internet = "Disabled"}
+# $internetenabledyesorno = Read-Host -Prompt "Do you want Internet access enabled for your Private Cloud? You can always change this configuration after deployment. (Y/N)"
+# if("Y" -eq $internetenabledyesorno)
+# {$internet = "Enabled"}
+# else 
+# {$internet = "Disabled"}
+$internet = "Enabled"
 
 #######################################
 # Define vCenter Password
@@ -255,7 +258,6 @@ Write-Host -ForegroundColor Yellow "---- Confirm The Following Is Accurate ---- 
 $begindeployment = Read-Host -Prompt "
 Would you like to begin the Azure VMware Solution deployment (Y/N)"
 
-
 if ("y" -eq $begindeployment)
 {
    
@@ -267,6 +269,13 @@ $deploymentkickofftime = get-date -format "hh:mm"
 
 New-AzVMWarePrivateCloud -Name $resourcename -ResourceGroupName $rgfordeployment -SubscriptionId $sub -NetworkBlock $addressblock -Sku $skus -Location $regionfordeployment -NsxtPassword $nsxpassword -VcenterPassword $vcenterpassword -managementclustersize $numberofhosts -Internet $internet -NoWait 
 }
+else
+{
+    Write-Host -Foregroundcolor Red " 
+    The script was terminated
+    "
+    Exit
+ }
 
 #######################################
 # Checking Deployment Status
