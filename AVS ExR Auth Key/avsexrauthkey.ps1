@@ -8,7 +8,8 @@
 # Connect To Azure
 #######################################
 Clear-Host
-$sub = Read-Host -Prompt "What is the Subscription ID where the Private Cloud exists?"
+# $sub = Read-Host -Prompt "What is the Subscription ID where the Private Cloud exists?"
+$sub = "3988f2d0-8066-42fa-84f2-5d72f80901da"
 Connect-AzAccount -Subscription $sub
 
 #######################################
@@ -28,7 +29,6 @@ $Count = 0
 
 $pcresourcegroup = Get-AzResource -Name $privatecloud
 $pcresourcegroup = $pcresourcegroup.ResourceGroupName
-$pcresourcegroup
 
 #######################################
 # Generate Auth Key
