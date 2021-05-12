@@ -32,7 +32,7 @@ $begin = Read-Host -Prompt "
 Would you like to begin? (Y/N)"
 
 if ("y" -eq $begin) {
-Write-Host "You will now be asked to locate the file nestedlabinputs.xlsx on your local system.  Press any key to continue ...
+Write-Host "You will now be asked to locate the file nestedlabvariables.xlsx on your local system.  Press any key to continue ...
 ";
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 
