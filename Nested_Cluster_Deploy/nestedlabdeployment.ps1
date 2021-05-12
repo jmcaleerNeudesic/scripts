@@ -1,7 +1,7 @@
 # Author: William Lam
 # Website: www.williamlam.com
 
-# Author: Trevor Davis
+# Adapted for AVS By: Trevor Davis
 # Twitter: @vTrevorDavis
 # Website: www.virtualworkloads.com
 
@@ -147,8 +147,8 @@ else {("n" -eq $begin)
 
 #confirm user inputs
 
-$confirmvariables = Read-Host -Prompt "
-Are these values correct? (Y/N)"
+#$confirmvariables = Read-Host -Prompt "
+#Are these values correct? (Y/N)"
 
 if ("n" -eq $confirmvariables) {
 Write-Host "
