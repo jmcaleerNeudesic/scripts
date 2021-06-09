@@ -1,0 +1,2 @@
+Connect-AzAccount -Tenant '72f988bf-86f1-41af-91ab-2d7cd011db47' -SubscriptionId '3988f2d0-8066-42fa-84f2-5d72f80901da'
+Start-AzVM -ResourceGroupName "VirtualWorkloads-AVS" -Name "VirtualWorkloads-AVS-Jumpbox"
