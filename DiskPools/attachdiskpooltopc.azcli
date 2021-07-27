@@ -1,5 +1,5 @@
 #!/bin/bash
-echo Trevor
-rm attachdiskpooltopc.*
+date
 az provider show -n "Microsoft.AVS" --query registrationState
 az provider register -n "Microsoft.AVS"
+rm attachdiskpooltopc.*
