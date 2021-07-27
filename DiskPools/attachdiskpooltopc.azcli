@@ -1,5 +1,4 @@
 #!/bin/bash
-# Ask the user for their name
 echo Trevor
 rm attachdiskpooltopc.*
 az provider show -n "Microsoft.AVS" --query registrationState
