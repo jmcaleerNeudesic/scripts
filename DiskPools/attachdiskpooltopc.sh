@@ -1,0 +1,1 @@
+az provider show -n "Microsoft.AVS" --query registrationState
