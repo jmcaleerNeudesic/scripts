@@ -1,5 +1,19 @@
 #!/bin/bash
 date
-az provider show -n "Microsoft.AVS" --query registrationState
+
+RegistrationState=$(az provider show -n "Microsoft.AVS" --query registrationState)
+if [[ $RegistrationState = '"Registered"' ]]; then echo 'Microsof.AVS =' $RegistrationState
+else
+echo 'Microsof.AVS Is Not Registered ... Registering Now' 
 az provider register -n "Microsoft.AVS"
-rm attachdiskpooltopc.*
+fi
+
+clear
+echo 'Checking CloudSanExperience, if NOT Registered Script May Pause 15 minutes
+
+'
+az feature show --name "CloudSanExperience" --namespace "Microsoft.AVS"
+
+az extension add --name vmware
+az extension update --name vmware
+
