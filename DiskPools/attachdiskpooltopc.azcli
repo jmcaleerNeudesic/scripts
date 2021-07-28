@@ -8,12 +8,14 @@ echo 'Microsof.AVS Is Not Registered ... Registering Now'
 az provider register -n "Microsoft.AVS"
 fi
 
-clear
 echo 'Checking CloudSanExperience, if NOT Registered Script May Pause 15 minutes
 
 '
 az feature show --name "CloudSanExperience" --namespace "Microsoft.AVS"
-
+echo 'CloudSanExperience Is Registered
+'
 az extension add --name vmware
 az extension update --name vmware
+
+rm attachdiskpooltopc.azcli
 
