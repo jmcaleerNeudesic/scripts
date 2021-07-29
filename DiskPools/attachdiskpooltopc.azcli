@@ -41,13 +41,15 @@ echo
 echo What is the iSCSI Target Name?
 read iscsitarget
 echo
+echo Provide a LUN name, this is just a friendly name for the LUN.
+read lun
+echo
 echo Attaching the disk to the private cloud, you can go over to your AVS private cloud and monitor the disks being attached in the Tasks pane of the vCenter console.
 
-az vmware datastore disk-pool-volume create --name $datastorename --resource-group $resourcegroup --cluster $cluster --private-cloud $privatecloud --target-id /subscriptions/$sub/resourceGroups/$resourcegroup/providers/Microsoft.StoragePool/diskPools/$diskpoolname/iscsiTargets/$iscsitarget
+az vmware datastore disk-pool-volume create --name $datastorename --resource-group $resourcegroup --cluster $cluster --private-cloud $privatecloud --target-id /subscriptions/$sub/resourceGroups/$resourcegroup/providers/Microsoft.StoragePool/diskPools/$diskpoolname/iscsiTargets/$iscsitarget --lun-name $lun
 
 az vmware datastore show --name $datastorename --resource-group $resourcegroup --cluster $cluster --private-cloud $privatecloud
 
 az vmware datastore list --resource-group $resourcegroup --cluster $cluster --private-cloud $privatecloud
 
 rm attachdiskpooltopc.azcli
-
