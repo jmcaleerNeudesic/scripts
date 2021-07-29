@@ -21,25 +21,25 @@ az extension update --name vmware
 
 # Read in variables to attach datastore to prive cloud.
 echo What do you want the datastore to be named?
-read $datastorename
+read datastorename
 echo
 echo What is the name of the Resource Group where the Azure VMware Solution private cloud is deployed?
-read $resourcegroup 
+read resourcegroup 
 echo
 echo What is the name of the Cluster where the datastore will attach?
-read $cluster 
+read cluster 
 echo
 echo What is the name of the private cloud where the cluster is located?
-read $privatecloud 
+read privatecloud 
 echo
 echo What is the subscription ID where the private cloud is deployed?  Please make sure to provide the numeric ID, not the name.
-read $sub 
+read sub 
 echo
 echo What is the name of the diskpool where the disk is located?
-read $diskpoolname
+read diskpoolname
 echo
 echo What is the iSCSI Target Name?
-read $iscsitarget
+read iscsitarget
 echo
 echo Attaching the disk to the private cloud, you can go over to your AVS private cloud and monitor the disks being attached in the Tasks pane of the vCenter console.
 
