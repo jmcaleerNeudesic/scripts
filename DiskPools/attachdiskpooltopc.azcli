@@ -1,6 +1,6 @@
 #!/bin/bash
-date
 
+# Checking registration of subscription to Microsoft.AVS, if not registered, registering it.
 RegistrationState=$(az provider show -n "Microsoft.AVS" --query registrationState)
 if [[ $RegistrationState = '"Registered"' ]]; then echo 'Microsof.AVS =' $RegistrationState
 else
@@ -8,14 +8,46 @@ echo 'Microsof.AVS Is Not Registered ... Registering Now'
 az provider register -n "Microsoft.AVS"
 fi
 
+# Checking registration of sub to CloudSanExperience, if not registered, will register.
 echo 'Checking CloudSanExperience, if NOT Registered Script May Pause 15 minutes
 
 '
 az feature show --name "CloudSanExperience" --namespace "Microsoft.AVS"
 echo 'CloudSanExperience Is Registered
 '
+# updating the vmware az cloudshell extensions, if not installed, will install
 az extension add --name vmware
 az extension update --name vmware
+
+# Read in variables to attach datastore to prive cloud.
+echo What do you want the datastore to be named?
+read $datastorename
+echo
+echo What is the name of the Resource Group where the Azure VMware Solution private cloud is deployed?
+read $resourcegroup 
+echo
+read What is the name of the Cluster where the datastore will attach?
+read $cluster 
+echo
+echo What is the name of the private cloud where the cluster is located?
+read $privatecloud 
+echo
+echo What is the subscription ID where the private cloud is deployed?  Please make sure to provide the numeric ID, not the name.
+read $sub 
+echo
+echo What is the name of the diskpool where the disk is located?
+read $diskpoolname
+echo
+echo What is the iSCSI Target Name?
+read $iscsitarget
+echo
+echo Attaching the disk to the private cloud, you can go over to your AVS private cloud and monitor the disks being attached in the Tasks pane of the vCenter console.
+
+az vmware datastore disk-pool-volume create --name $datastorename --resource-group $resourcegroup --cluster $cluster --private-cloud $privatecloud --target-id /subscriptions/$sub/resourceGroups/$resourcegroup/providers/Microsoft.StoragePool/diskPools/$diskpoolname/iscsiTargets/$iscsitarget
+
+az vmware datastore show --name $datastorename --resource-group $resourcegroup --cluster $cluster --private-cloud $privatecloud
+
+az vmware datastore list --resource-group $resourcegroup --cluster $cluster --private-cloud $privatecloud
 
 rm attachdiskpooltopc.azcli
 
