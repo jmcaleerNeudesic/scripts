@@ -26,7 +26,7 @@ echo
 echo What is the name of the Resource Group where the Azure VMware Solution private cloud is deployed?
 read $resourcegroup 
 echo
-read What is the name of the Cluster where the datastore will attach?
+echo What is the name of the Cluster where the datastore will attach?
 read $cluster 
 echo
 echo What is the name of the private cloud where the cluster is located?
