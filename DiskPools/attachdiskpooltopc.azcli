@@ -41,7 +41,7 @@ echo
 echo What is the iSCSI Target Name?
 read iscsitarget
 echo
-echo Provide a LUN name, this is just a friendly name for the LUN.
+echo Provide the LUN name, this is the iSCSI LUN name in the Disk pool
 read lun
 echo
 echo Attaching the disk to the private cloud, you can go over to your AVS private cloud and monitor the disks being attached in the Tasks pane of the vCenter console.
