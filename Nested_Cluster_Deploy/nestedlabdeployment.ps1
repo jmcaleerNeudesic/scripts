@@ -1,37 +1,57 @@
-# Author: William Lam
-# Website: www.williamlam.com
+#######################################################################################
+# Outline Requirements 
+#######################################################################################
 
-# Adapted for AVS By: Trevor Davis
-# Twitter: @vTrevorDavis
-# Website: www.virtualworkloads.com
+Write-Host -ForegroundColor Green "
+This script will do the following:"
 
-#####Requirements#####
-# Powershell 7
-# Excel on machine where script is run
-# vCenter 
+Write-Host -ForegroundColor White "
+- Create NSX-T T1 Gateway specifically for the nested cluster.
+- Create NSX-T segment on the NSX-T T1 Gateway.
+- Deploy 2-node nested vSphere Cluster on the AVS Private Cloud.
+- Connect nested vSphere Cluster to the newly created NSX-T segment."
 
+Write-Host -ForegroundColor Green "
+To support this deployment the following is required:
+"
 
-#########################
+Write-Host -ForegroundColor White "- Powershell 7.x"
+Write-Host -ForegroundColor Yellow "  https://docs.microsoft.com/en-us/powershell/"
+Write-Host -ForegroundColor White "- VMware PowerCLI"
+Write-Host -ForegroundColor Yellow "  https://developer.vmware.com/web/tool/vmware-powercli"
+Write-Host -ForegroundColor White "- Pre-Populated Configuraton File"
+Write-Host -ForegroundColor Yellow "  https://github.com/Trevor-Davis/scripts/blob/main/Nested_Cluster_Deploy/nestedlabvariables.xlsx"
+Write-Host -ForegroundColor White "- Microsoft Excel"
+Write-Host -ForegroundColor White "- vSphere OVA file"
+Write-Host -ForegroundColor White "- Path to vCenter Installer"
+Write-Host -ForegroundColor White "- Access to an AVS Private Cloud vCenter and NSX Manager
+"
 
-$SddcProvider = "Microsoft"
+Write-Host -ForegroundColor Yellow "Would you like to begin? (Y/N): " -NoNewline
+$begin = Read-Host 
 
-clear-host
-Write-Host "
+if ("y" -eq $begin) {
 
-This script will deploy a nested vSphere Cluster in an AVS Private Cloud.  The following must be available.
+#######################################################################################
+# Get NSX and vCenter Credentials 
+#######################################################################################
+#Write-Host -ForegroundColor Green "
+#Provide the credentials for the AVS vCenter Server:" 
+#$vCenterCred = Get-Credential
+Write-Host -NoNewLine -ForegroundColor White "
+Provide the credentials for the"
+Write-Host -ForegroundColor Green " AVS NSX Manager:"
+$NSXCred = Get-Credential}
 
-- Pre-Populated Configuraton File
-- AVS Private Cloud
-- vSphere OVA file
-- Path to vCenter Installer
-- Photon NFS appliance OVA"
+else {
+    Write-Host -ForegroundColor Red "
+    Script has been terminated."
+    Exit
+}
 
 #######################################################################################
 # Browse for User Input File 
-$begin = Read-Host -Prompt "
-Would you like to begin? (Y/N)"
-
-if ("y" -eq $begin) {
+#######################################################################################
 Write-Host "You will now be asked to locate the file nestedlabvariables.xlsx on your local system.  Press any key to continue ...
 ";
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
@@ -41,234 +61,321 @@ $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
    [void]$FileBrowser.ShowDialog()
    $file = $FileBrowser.FileName
    $sheetName = "nestedvariables"
-}
-
-else {("n" -eq $begin) 
-   write-host -ForegroundColor Red "Please gather all required items and try again later."
-   Exit}
-
    $objExcel = New-Object -ComObject Excel.Application
    $workbook = $objExcel.Workbooks.Open($file)
    $sheet = $workbook.Worksheets.Item($sheetName)
    $objExcel.Visible=$false
 
    #Declare the  positions
-   $rowvCenter,$colvCenter = 2,2
-   $rowusername,$colusername = 3,2
-   $rowPassword,$colPassword = 4,2
-   $rowesxi1ip,$colesxi1ip = 5,2
-   $rowesxi2ip,$colesxi2ip = 6,2
-   $rowNestedESXivCPU,$colNestedESXivCPU = 7,2
-   $rowNestedESXivMEM,$colNestedESXivMEM = 8,2
-   $rowdomain,$coldomain = 9,2
-   $rowNFSVMDisplayName,$colNFSVMDisplayName = 10,2
-   $rowNFSVMHostname,$colNFSVMHostname = 11,2
-   $rowNFSVMIPAddress,$colNFSVMIPAddress = 12,2
-   $rowNFSVMPrefix,$colNFSVMPrefix = 13,2
-   $rowNFSVMVolumeLabel,$colNFSVMVolumeLabel = 14,2
-   $rowNFSVMCapacity,$colNFSVMCapacity = 15,2
-   $rowNFSVMRootPassword,$colNFSVMRootPassword = 16,2
-   $rowVCSADeploymentSize,$colVCSADeploymentSize = 17,2
-   $rowVCSADisplayName,$colVCSADisplayName = 18,2
-   $rowVCSAIPAddress,$colVCSAIPAddress = 19,2
-   $rowVCSAHostname,$colVCSAHostname = 19,2
-   $rowVCSAPrefix,$colVCSAPrefix = 20,2
-   $rowVCSASSODomainName,$colVCSASSODomainName = 9,2
-   $rowVCSASSOPassword,$colVCSASSOPassword = 21,2
-   $rowVCSARootPassword,$colVCSARootPassword = 21,2
-   $rowVCSASSHEnable,$colVCSASSHEnable = 22,2
-   $rowVMDatacenter,$colVMDatacenter = 23,2
-   $rowVMCluster,$colVMCluster = 24,2
-   $rowVMResourcePool,$colVMResourcePool = 25,2
-   $rowVMDatastore,$colVMDatastore = 26,2
-   $rowVMNetwork,$colVMNetwork = 27,2
-   $rowVMNetmask,$colVMNetmask = 28,2
-   $rowVMGateway,$colVMGateway = 29,2
-   $rowVMDNS,$colVMDNS = 30,2
-   $rowVMNTP,$colVMNTP = 31,2
-   $rowVMDomain,$colVMDomain = 9,2
-   $rowVMPassword,$colVMPassword = 32,2
-   $rowVMFolder,$colVMFolder = 33,2
-   $rowVMSSH,$colVMSSH = 34,2
-   $rowNewVCDatacenterName,$colNewVCDatacenterName = 35,2
-   $rowNewVCVSANClusterName,$colNewVCVSANClusterName = 36,2
-   $rowNewVCVDSName,$colNewVCVDSName = 37,2
-   $rowNewVCMgmtDVPGName,$colNewVCMgmtDVPGName = 38,2
-   $rowNewVMWorkloadDVPGName,$colNewVMWorkloadDVPGName = 39,2
+   $rowVIServer,$colVIServer = 2,4
+$rowVIUsername,$colVIUsername = 3,4
+$rowVIPassword,$colVIPassword = 4,4
+$rowNSXManagerIP,$colNSXManagerIP = 5,4
+$rowAVSDatacenter,$colAVSDatacenter = 6,4
+$rowAVSCluster,$colAVSCluster = 7,4
+$rowAVSDatastore,$colAVSDatastore = 8,4
+$rowAVSResourcePool,$colAVSResourcePool = 9,4
+$rowtier0gw,$coltier0gw = 10,4
+$rowtier1gw,$coltier1gw = 11,4
+$rowtransportzoneid,$coltransportzoneid = 12,4
+$rowNSXSegName,$colNSXSegName = 13,4
+$rowNSXSegNetwork,$colNSXSegNetwork = 14,4
+$rowNSXSegNetmask,$colNSXSegNetmask = 15,4
+$rowNSXSegGateway,$colNSXSegGateway = 16,4
+$rowadminpassword,$coladminpassword = 17,4
+$rowesxi1hostname,$colesxi1hostname = 18,4
+$rowesxi2hostname,$colesxi2hostname = 19,4
+$rowesxi1ip,$colesxi1ip = 20,4
+$rowesxi2ip,$colesxi2ip = 21,4
+$rowNestedESXivCPU,$colNestedESXivCPU = 22,4
+$rowNestedESXivMEM,$colNestedESXivMEM = 23,4
+$rowVCSASSODomainName,$colVCSASSODomainName = 24,4
+$rowVCSADeploymentSize,$colVCSADeploymentSize = 25,4
+$rowVCSADisplayName,$colVCSADisplayName = 26,4
+$rowVCSAIPAddress,$colVCSAIPAddress = 27,4
+$rowVCSAGateway,$colVCSAGateway = 28,4
+$rowVCSAPrefix,$colVCSAPrefix = 29,4
+$rownestedssh,$colnestedssh = 30,4
+$rowdhcpnetwork,$coldhcpnetwork = 31,4
+$rowdhcprange,$coldhcprange = 32,4
+$rowDHCPServerAddress,$colDHCPServerAddress = 33,4
+$rowEdgeClusterID,$colEdgeClusterID = 34,4
+$rowdhcpservername,$coldhcpservername = 35,4
+$rowNestedClusterDNS,$colNestedClusterDNS = 36,4
+$rownestedntp,$colnestedntp = 37,4
+$rowVMFolder,$colVMFolder = 38,4
+$rowNewVCDatacenterName,$colNewVCDatacenterName = 39,4
+$rowNewVCVSANClusterName,$colNewVCVSANClusterName = 40,4
+$rowNewVCVDSName,$colNewVCVDSName = 41,4
+$rowNewVCWorkloadDVPGName,$colNewVCWorkloadDVPGName = 42,4
+
+
    
+
+    
    #read in variables
-   $VIServer = $sheet.Cells.Item($rowvCenter,$colvCenter).text
-   $VIUsername = $sheet.Cells.Item($rowusername,$colusername).text
-   $VIPassword = $sheet.Cells.Item($rowPassword,$colPassword).text
+   $VIServer = $sheet.Cells.Item($rowVIServer,$colVIServer).text
+   $VIUsername = $sheet.Cells.Item($rowVIUsername,$colVIUsername).text
+   $VIPassword = $sheet.Cells.Item($rowVIPassword,$colVIPassword).text
+   $NSXManagerIP = $sheet.Cells.Item($rowNSXManagerIP,$colNSXManagerIP).text
+   $AVSDatacenter = $sheet.Cells.Item($rowAVSDatacenter,$colAVSDatacenter).text
+   $AVSCluster = $sheet.Cells.Item($rowAVSCluster,$colAVSCluster).text
+   $AVSDatastore = $sheet.Cells.Item($rowAVSDatastore,$colAVSDatastore).text
+   $AVSResourcePool = $sheet.Cells.Item($rowAVSResourcePool,$colAVSResourcePool).text
+   $tier0gw = $sheet.Cells.Item($rowtier0gw,$coltier0gw).text
+   $tier1gw = $sheet.Cells.Item($rowtier1gw,$coltier1gw).text
+   $transportzoneid = $sheet.Cells.Item($rowtransportzoneid,$coltransportzoneid).text
+   $NSXSegName = $sheet.Cells.Item($rowNSXSegName,$colNSXSegName).text
+   $NSXSegNetwork = $sheet.Cells.Item($rowNSXSegNetwork,$colNSXSegNetwork).text
+   $NSXSegNetmask = $sheet.Cells.Item($rowNSXSegNetmask,$colNSXSegNetmask).text
+   $NSXSegGateway = $sheet.Cells.Item($rowNSXSegGateway,$colNSXSegGateway).text
+   $adminpassword = $sheet.Cells.Item($rowadminpassword,$coladminpassword).text
+   $esxi1hostname = $sheet.Cells.Item($rowesxi1hostname,$colesxi1hostname).text
+   $esxi2hostname = $sheet.Cells.Item($rowesxi2hostname,$colesxi2hostname).text
    $esxi1ip = $sheet.Cells.Item($rowesxi1ip,$colesxi1ip).text
    $esxi2ip = $sheet.Cells.Item($rowesxi2ip,$colesxi2ip).text
    $NestedESXivCPU = $sheet.Cells.Item($rowNestedESXivCPU,$colNestedESXivCPU).text
    $NestedESXivMEM = $sheet.Cells.Item($rowNestedESXivMEM,$colNestedESXivMEM).text
-   $domain = $sheet.Cells.Item($rowdomain,$coldomain).text
-   $NFSVMDisplayName = $sheet.Cells.Item($rowNFSVMDisplayName,$colNFSVMDisplayName).text
-   $NFSVMHostname = $sheet.Cells.Item($rowNFSVMHostname,$colNFSVMHostname).text
-   $NFSVMIPAddress = $sheet.Cells.Item($rowNFSVMIPAddress,$colNFSVMIPAddress).text
-   $NFSVMPrefix = $sheet.Cells.Item($rowNFSVMPrefix,$colNFSVMPrefix).text
-   $NFSVMVolumeLabel = $sheet.Cells.Item($rowNFSVMVolumeLabel,$colNFSVMVolumeLabel).text
-   $NFSVMCapacity = $sheet.Cells.Item($rowNFSVMCapacity,$colNFSVMCapacity).text
-   $NFSVMRootPassword = $sheet.Cells.Item($rowNFSVMRootPassword,$colNFSVMRootPassword).text
+   $VCSASSODomainName = $sheet.Cells.Item($rowVCSASSODomainName,$colVCSASSODomainName).text
    $VCSADeploymentSize = $sheet.Cells.Item($rowVCSADeploymentSize,$colVCSADeploymentSize).text
    $VCSADisplayName = $sheet.Cells.Item($rowVCSADisplayName,$colVCSADisplayName).text
    $VCSAIPAddress = $sheet.Cells.Item($rowVCSAIPAddress,$colVCSAIPAddress).text
-   $VCSAHostname = $sheet.Cells.Item($rowVCSAHostname,$colVCSAHostname).text
+   $VCSAGateway = $sheet.Cells.Item($rowVCSAGateway,$colVCSAGateway).text
    $VCSAPrefix = $sheet.Cells.Item($rowVCSAPrefix,$colVCSAPrefix).text
-   $VCSASSODomainName = $sheet.Cells.Item($rowVCSASSODomainName,$colVCSASSODomainName).text
-   $VCSASSOPassword = $sheet.Cells.Item($rowVCSASSOPassword,$colVCSASSOPassword).text
-   $VCSARootPassword = $sheet.Cells.Item($rowVCSARootPassword,$colVCSARootPassword).text
-   $VCSASSHEnable = $sheet.Cells.Item($rowVCSASSHEnable,$colVCSASSHEnable).text
-   $VMDatacenter = $sheet.Cells.Item($rowVMDatacenter,$colVMDatacenter).text
-   $VMCluster = $sheet.Cells.Item($rowVMCluster,$colVMCluster).text
-   $VMResourcePool = $sheet.Cells.Item($rowVMResourcePool,$colVMResourcePool).text
-   $VMDatastore = $sheet.Cells.Item($rowVMDatastore,$colVMDatastore).text
-   $VMNetwork = $sheet.Cells.Item($rowVMNetwork,$colVMNetwork).text
-   $VMNetmask = $sheet.Cells.Item($rowVMNetmask,$colVMNetmask).text
-   $VMGateway = $sheet.Cells.Item($rowVMGateway,$colVMGateway).text
-   $VMDNS = $sheet.Cells.Item($rowVMDNS,$colVMDNS).text
-   $VMNTP = $sheet.Cells.Item($rowVMNTP,$colVMNTP).text
-   $VMDomain = $sheet.Cells.Item($rowVMDomain,$colVMDomain).text
-   $VMPassword = $sheet.Cells.Item($rowVMPassword,$colVMPassword).text
+   $nestedssh = $sheet.Cells.Item($rownestedssh,$colnestedssh).text
+   $dhcpnetwork = $sheet.Cells.Item($rowdhcpnetwork,$coldhcpnetwork).text
+   $dhcprange = $sheet.Cells.Item($rowdhcprange,$coldhcprange).text
+   $DHCPServerAddress = $sheet.Cells.Item($rowDHCPServerAddress,$colDHCPServerAddress).text
+   $EdgeClusterID = $sheet.Cells.Item($rowEdgeClusterID,$colEdgeClusterID).text
+   $dhcpservername = $sheet.Cells.Item($rowdhcpservername,$coldhcpservername).text
+   $NestedClusterDNS = $sheet.Cells.Item($rowNestedClusterDNS,$colNestedClusterDNS).text
+   $nestedntp = $sheet.Cells.Item($rownestedntp,$colnestedntp).text
    $VMFolder = $sheet.Cells.Item($rowVMFolder,$colVMFolder).text
-   $VMSSH = $sheet.Cells.Item($rowVMSSH,$colVMSSH).text
    $NewVCDatacenterName = $sheet.Cells.Item($rowNewVCDatacenterName,$colNewVCDatacenterName).text
    $NewVCVSANClusterName = $sheet.Cells.Item($rowNewVCVSANClusterName,$colNewVCVSANClusterName).text
    $NewVCVDSName = $sheet.Cells.Item($rowNewVCVDSName,$colNewVCVDSName).text
-   $NewVCMgmtDVPGName = $sheet.Cells.Item($rowNewVCMgmtDVPGName,$colNewVCMgmtDVPGName).text
-   $NewVCWorkloadDVPGName = $sheet.Cells.Item($rowNewVMWorkloadDVPGName,$colNewVMWorkloadDVPGName).text
+   $NewVCWorkloadDVPGName = $sheet.Cells.Item($rowNewVCWorkloadDVPGName,$colNewVCWorkloadDVPGName).text
+   
    
 
-  
+      
    #close excel file
    $objExcel.quit()
 
-#confirm user inputs
+########################################
+# Locate the ESXi OVA File
+########################################
 
-#$confirmvariables = Read-Host -Prompt "
-#Are these values correct? (Y/N)"
-
-if ("n" -eq $confirmvariables) {
+ 
+   
 Write-Host "
-Please update the file nestedlabvariables.xlsx and retry
-" -ForegroundColor Green
+"
+Write-Host -NoNewLine -ForegroundColor White "
+   You will now be asked to locate the"
+   Write-Host -NoNewLine -ForegroundColor Green " ESXi OVA File on your local system."
+   Write-Host -NoNewline -ForegroundColor White "  Press any key to continue ..."
 
-   Exit}
-
-else {
-
-# Connect to vCenter
-Set-PowerCLIConfiguration -InvalidCertificateAction:Ignore
-Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $false
-Connect-VIServer $VIServer -User $VIUsername -Password $VIPassword -WarningAction SilentlyContinue
-
-}
-
-
-Write-Host "
-You will now be prompted to find the vSphere OVA to use for the nested deployment.  Press any key to continue..."
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+  $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
 
    Add-Type -AssemblyName System.Windows.Forms
    $FileBrowser = New-Object System.Windows.Forms.OpenFileDialog
    [void]$FileBrowser.ShowDialog()
    $NestedESXiApplianceOVA = $FileBrowser.FileName
 
+# $NestedESXiApplianceOVA = "C:\users\avs-admin\Downloads\nested\Nested_ESXi6.7u3_Appliance_Template_v1.ova"
+
+########################################
+# ID the vCenter Installer Path
+########################################
+
 Write-Host "
-You will now be prompted to identify the folder of the vCenter installer.  Press any key to continue..."
+"
+Write-Host -NoNewLine -ForegroundColor White "
+You will now be prompted to"
+Write-Host -NoNewLine -ForegroundColor Green " identify the folder of the vCenter installer."
+Write-Host -NoNewline -ForegroundColor White "  Press any key to continue ..."
+
+
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 
    Add-Type -AssemblyName System.Windows.Forms
    $FolderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
    [void]$FolderBrowser.ShowDialog()
    $VCSAInstallerPath = $FolderBrowser.SelectedPath
-
-Write-Host "
-You will now be prompted to locate the NFS OVA file.  Press any key to continue..."
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-
-   Add-Type -AssemblyName System.Windows.Forms
-   $FileBrowser = New-Object System.Windows.Forms.OpenFileDialog
-   [void]$FileBrowser.ShowDialog()
-   $PhotonNFSOVA = $FileBrowser.FileName
+   
+   
 
 
-# Full Path to both the Nested ESXi VA and Extracted VCSA ISO
-#$NestedESXiApplianceOVA = "C:\nestedlab\Nested_ESXi6.7u3_Appliance_Template_v1.ova"
-#$VCSAInstallerPath = "C:\nestedlab\vcenter"
-#$PhotonNFSOVA = "C:\nestedlab\PhotonOS_NFS_Appliance_0.1.0.ova"
-# $PhotonOSOVA = "C:\Users\Administrator\Desktop\Nested\photon-hw13_uefi-3.0-26156e2.ova"
+########################################
+# Create T1 GW
+########################################
+$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+$headers.Add("Content-Type", "application/json")
 
-#############################################################################################
+$body = "{
+`n    `"tier0_path`": `"/infra/tier-0s/$tier0gw`",
+`n    `"failover_mode`": `"NON_PREEMPTIVE`",
+`n    `"enable_standby_relocation`": false,
+`n    `"route_advertisement_types`": [
+`n        `"TIER1_LB_VIP`",
+`n        `"TIER1_CONNECTED`",
+`n        `"TIER1_IPSEC_LOCAL_ENDPOINT`",
+`n        `"TIER1_NAT`",
+`n        `"TIER1_LB_SNAT`",
+`n        `"TIER1_DNS_FORWARDER_IP`",
+`n        `"TIER1_STATIC_ROUTES`"
+`n    ],
+`n    `"force_whitelisting`": false,
+`n    `"default_rule_logging`": false,
+`n    `"disable_firewall`": false,
+`n    `"ipv6_profile_paths`": [
+`n        `"/infra/ipv6-ndra-profiles/default`",
+`n        `"/infra/ipv6-dad-profiles/default`"
+`n    ],
+`n    `"pool_allocation`": `"ROUTING`",
+`n    `"resource_type`": `"Tier1`",
+`n    `"id`": `"$tier1gw`",
+`n    `"display_name`": `"$tier1gw`",
+`n    `"path`": `"/infra/tier-1s/$tier1gw`",
+`n    `"relative_path`": `"$tier1gw`",
+`n    `"parent_path`": `"/infra`",
+`n    `"marked_for_delete`": false,
+`n    `"overridden`": false
+`n}"
+
+$response = Invoke-RestMethod https://"$NSXManagerIP"/policy/api/v1/infra/tier-1s/"$tier1gw" -Method 'PATCH' -Headers $headers -Body $body -Authentication Basic -Credential $NSXCred -SkipCertificateCheck
+$response | ConvertTo-Json
+
+######
+$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+$headers.Add("Content-Type", "application/json")
+
+
+$body = "        {
+`n            `"edge_cluster_path`": `"/infra/sites/default/enforcement-points/default/edge-clusters/8c1ad058-f8a2-49c1-9d16-6098c596457d`",
+`n            `"bfd_profile_path`": `"/infra/bfd-profiles/default`",
+`n            `"resource_type`": `"LocaleServices`",
+`n            `"id`": `"$tier1gw-LOCALE-SERVICE`",
+`n            `"display_name`": `"$tier1gw-LOCALE-SERVICE`",
+`n            `"path`": `"/infra/tier-1s/$tier1gw/locale-services/$tier1gw-LOCALE-SERVICE`",
+`n            `"relative_path`": `"$tier1gw-LOCALE-SERVICE`",
+`n            `"parent_path`": `"/infra/tier-1s/$tier1gw`",
+`n            `"marked_for_delete`": false,
+`n            `"overridden`": false,
+`n            `"_system_owned`": false,
+`n            `"_protection`": `"REQUIRE_OVERRIDE`"
+`n        }
+`n"
+
+$response = Invoke-RestMethod https://"$NSXManagerIP"/policy/api/v1/infra/tier-1s/"$tier1gw"/locale-services/"$tier1gw"-LOCALE-SERVICE -Method 'PUT' -Headers $headers -Body $body -Authentication Basic -Credential $NSXCred -SkipCertificateCheck
+$response | ConvertTo-Json
+
+
+###Create DHCP Server
+
+$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+$headers.Add("Content-Type", "application/json")
+
+
+
+$body = "{
+`n  `"server_address`": `"$DHCPServerAddress`",
+`n  `"lease_time`": 86400,
+`n        `"edge_cluster_path`": `"/infra/sites/default/enforcement-points/default/edge-clusters/$EdgeClusterID`",
+`n        `"resource_type`": `"DhcpServerConfig`"
+`n
+`n
+`n}"
+
+$response = Invoke-RestMethod https://"$NSXManagerIP"/policy/api/v1/infra/dhcp-server-configs/"$dhcpservername" -Method 'PATCH' -Headers $headers -Body $body -Authentication Basic -Credential $NSXCred -SkipCertificateCheck
+$response | ConvertTo-Json
+
+########################################
+# LinkDHCP to T1
+########################################
+   
+
+$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+$headers.Add("Content-Type", "application/json")
+
+$body = "{ `"dhcp_config_paths`": [
+`n        `"/infra/dhcp-server-configs/$dhcpservername`"
+`n    ]}"
+
+$response = Invoke-RestMethod https://$NSXManagerIP/policy/api/v1/infra/tier-1s/$tier1gw -Method 'PATCH' -Headers $headers -Body $body -SkipCertificateCheck -Authentication Basic -Credential $NSXCred
+$response | ConvertTo-Json
+
+#######################################
+# Create Segments
+########################################
+
+
+
+$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+$headers.Add("Content-Type", "application/json")
+
+$body = "  {
+`n    `"display_name`":`"$NSXSegName`",
+`n    `"subnets`": [
+`n      {
+`n        `"gateway_address`": `"$NSXSegGateway`",
+`n        `"dhcp_ranges`":[`"$dhcprange`"],
+`n        `"dhcp_config`":{
+`n            `"resource_type`": `"SegmentDhcpV4Config`",
+`n            `"lease_time`": 86400,
+`n            `"dns_servers`":[`"$NestedClusterDNS`"]
+`n        },
+`n       `"network`": `"$NSXSegNetwork`"
+`n      }
+`n    ],
+`n    `"connectivity_path`": `"/infra/tier-1s/$tier1gw`",
+`n    `"transport_zone_path`": `"/infra/sites/default/enforcement-points/default/transport-zones/$transportzoneid`"
+`n
+`n  }"
+
+$response = Invoke-RestMethod https://$NSXManagerIP/policy/api/v1/infra/segments/$NSXSegName -Method 'PUT' -Headers $headers -Authentication Basic -Credential $NSXCred -Body $body -SkipCertificateCheck
+$response | ConvertTo-Json
+
+Write-Host "Pausing the Script for 15 Seconds"
+Start-Sleep -s 15
+
+
+
+<#
+# Countdown
+########################################
+$x = 1*30
+$length = $x / 100
+while($x -gt 0) {
+  $min = [int](([string]($x/60)).split('.')[0])
+  $text = " " + $min + " minutes " + ($x % 60) + " seconds left"
+  Write-Progress "Making Sure All the NSX Configurations Have Been Applied ..." -status $text -perc ($x/$length)
+  start-sleep -s 1
+  $x--
+  
+}
+Clear-Host
+#>
+
+$SddcProvider = "Microsoft"
+
+
+# Connect to vCenter
+Set-PowerCLIConfiguration -InvalidCertificateAction:Ignore
+Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $false
+Connect-VIServer $VIServer -User $VIUsername -Password $VIPassword -WarningAction SilentlyContinue
+
+
+$PhotonNFSOVA = $NestedESXiApplianceOVA
+
+
 
 # Nested ESXi VMs to deploy
 $NestedESXiHostnameToIPs = @{
-"esxi-1" = "$esxi1ip"
-"esxi-2" = "$esxi2ip"
-# "esxi-3" = "192.168.74.13"
-}
+    "$esxi1hostname" = "$esxi1ip"
+    "$esxi2hostname" = "$esxi2ip"
+    }
 
-
-
-#############################################################################################
-
-#$NFSVMDisplayName = "nfs"
-#$NFSVMHostname = "nfs.$domain"
-#$NFSVMIPAddress = "192.168.89.120"
-#$NFSVMPrefix = "24"
-#$NFSVMVolumeLabel = "nfs"
-#$NFSVMCapacity = "1000" #GB
-#$NFSVMRootPassword = "Microsoft.123!"
-
-#############################################################################################
-
-# VCSA Deployment Configuration
-#$VCSADeploymentSize = "tiny"
-#$VCSADisplayName = "CHS-CorpDC-vCenter"
-#$VCSAIPAddress = "192.168.89.110"
-#$VCSAHostname = "192.168.89.110" #Change to IP if you don't have valid DNS
-#$VCSAPrefix = "24"
-#$VCSASSODomainName = "chs.local"
-#$VCSASSOPassword = "Microsoft.123!"
-#$VCSARootPassword = "Microsoft.123!"
-#$VCSASSHEnable = "true"
-
-#############################################################################################
-
-# General Deployment Configuration for Nested ESXi, VCSA & NSX VMs
-#$VMDatacenter = "SDDC-Datacenter"
-#$VMCluster = "Cluster-1"
-#$VMResourcePool = "CHS-CorpDC-ResourcePool"
-#$VMNetwork = "NestedCluster"
-#$VMDatastore = "vsanDatastore"
-
-#$VMNetmask = "255.255.255.0"
-#$VMGateway = "192.168.89.1"
-#$VMDNS = "10.3.1.7"
-#$VMNTP = "pool.ntp.org"
-#$VMPassword = "Microsoft.123!"
-#$VMDomain = "chs.local"
-# $VMSyslog = "192.168.1.10"
-
-#$VMFolder = "CHS-CorpDC-VMs"
-
-#############################################################################################
-
-# Applicable to Nested ESXi only
-#$VMSSH = "true"
-
-
-#############################################################################################
-
-# Name of new vSphere Datacenter/Cluster when VCSA is deployed
-#$NewVCDatacenterName = "CHS-CorpDC"
-#$NewVCVSANClusterName = "CHS-CorpDC-Cluster"
-#$NewVCVDSName = "CHS-CorpDC-VDS"
-#$NewVCMgmtDVPGName = "CHS-CorpDC-Management"
-#$NewVCWorkloadDVPGName = "CHS-CorpDC-Workload"
-#$NewVCWorkloadVMFormat = "CHS-CorpDC-Workload-" # workload-01,02,03,etc
 
 $NewVCWorkloadVMFormat = "$NewVCWorkloadDVPGName-" # workload-01,02,03,etc
 
@@ -281,7 +388,6 @@ $VMVMFS = "false"
 # Set to 1 only if you have DNS (forward/reverse) for ESXi hostnames
 $addHostByDnsName = 0
 
-#### DO NOT EDIT BEYOND HERE ####
 
 $debug = $true
 $verboseLogFile = "nested-sddc-lab-deployment.log"
@@ -289,13 +395,13 @@ $random_string = -join ((65..90) + (97..122) | Get-Random -Count 8 | % {[char]$_
 $VAppName = "Nested-SDDC-Lab-$random_string"
 
 $preCheck = 1
-$confirmDeployment = 1
-$deployNFSVM = 1
+$confirmDeployment = 0
+$deployNFSVM = 0
 $deployNestedESXiVMs = 1
 $deployVCSA = 1
 $setupNewVC = 1
 $addESXiHostsToVC = 1
-$configureESXiStorage = 1
+$configureESXiStorage = 0
 $configureVDS = 1
 $clearHealthCheckAlarm = 1
 $moveVMsIntovApp = 1
@@ -404,14 +510,14 @@ if($confirmDeployment -eq 1) {
     Write-Host -NoNewline -ForegroundColor Green "vCenter Server Address: "
     Write-Host -ForegroundColor White $VIServer
     Write-Host -NoNewline -ForegroundColor Green "VM Network: "
-    Write-Host -ForegroundColor White $VMNetwork
+    Write-Host -ForegroundColor White $NSXSegName
 
     Write-Host -NoNewline -ForegroundColor Green "VM Cluster: "
-    Write-Host -ForegroundColor White $VMCluster
+    Write-Host -ForegroundColor White $AVSCluster
     Write-Host -NoNewline -ForegroundColor Green "VM Resource Pool: "
-    Write-Host -ForegroundColor White $VMResourcePool
+    Write-Host -ForegroundColor White $AVSResourcePool
     Write-Host -NoNewline -ForegroundColor Green "VM Storage: "
-    Write-Host -ForegroundColor White $VMDatastore
+    Write-Host -ForegroundColor White $AVSDatastore
     Write-Host -NoNewline -ForegroundColor Green "VM vApp: "
     Write-Host -ForegroundColor White $VAppName
 
@@ -436,17 +542,17 @@ if($confirmDeployment -eq 1) {
     Write-Host -NoNewline -ForegroundColor Green "IP Address(s): "
     Write-Host -ForegroundColor White $NestedESXiHostnameToIPs.Values
     Write-Host -NoNewline -ForegroundColor Green "Netmask "
-    Write-Host -ForegroundColor White $VMNetmask
+    Write-Host -ForegroundColor White $NSXSegNetmask
     Write-Host -NoNewline -ForegroundColor Green "Gateway: "
-    Write-Host -ForegroundColor White $VMGateway
+    Write-Host -ForegroundColor White $NSXSegGateway
     Write-Host -NoNewline -ForegroundColor Green "DNS: "
-    Write-Host -ForegroundColor White $VMDNS
+    Write-Host -ForegroundColor White $NestedClusterDNS
     Write-Host -NoNewline -ForegroundColor Green "NTP: "
-    Write-Host -ForegroundColor White $VMNTP
+    Write-Host -ForegroundColor White $nestedntp
     Write-Host -NoNewline -ForegroundColor Green "Syslog: "
     Write-Host -ForegroundColor White $VMSyslog
     Write-Host -NoNewline -ForegroundColor Green "Enable SSH: "
-    Write-Host -ForegroundColor White $VMSSH
+    Write-Host -ForegroundColor White $nestedssh
 
     Write-Host -ForegroundColor Yellow "`n---- VCSA Configuration ----"
     Write-Host -NoNewline -ForegroundColor Green "Deployment Size: "
@@ -454,15 +560,15 @@ if($confirmDeployment -eq 1) {
     Write-Host -NoNewline -ForegroundColor Green "SSO Domain: "
     Write-Host -ForegroundColor White $VCSASSODomainName
     Write-Host -NoNewline -ForegroundColor Green "Enable SSH: "
-    Write-Host -ForegroundColor White $VCSASSHEnable
+    Write-Host -ForegroundColor White $nestedssh
     Write-Host -NoNewline -ForegroundColor Green "Hostname: "
     Write-Host -ForegroundColor White $VCSAHostname
     Write-Host -NoNewline -ForegroundColor Green "IP Address: "
     Write-Host -ForegroundColor White $VCSAIPAddress
     Write-Host -NoNewline -ForegroundColor Green "Netmask "
-    Write-Host -ForegroundColor White $VMNetmask
+    Write-Host -ForegroundColor White $NSXSegNetmask
     Write-Host -NoNewline -ForegroundColor Green "Gateway: "
-    Write-Host -ForegroundColor White $VMGateway
+    Write-Host -ForegroundColor White $NSXSegGateway
 
     $esxiTotalCPU = $NestedESXiHostnameToIPs.count * [int]$NestedESXivCPU
     $esxiTotalMemory = $NestedESXiHostnameToIPs.count * [int]$NestedESXivMEM
@@ -524,7 +630,7 @@ if($confirmDeployment -eq 1) {
 
 #############Stuff Trevor Added ###########################
 
-New-ResourcePool -Location $VMCluster -Name $VMResourcePool
+New-ResourcePool -Location $AVSCluster -Name $AVSResourcePool
 
 ###########################################################
 
@@ -532,9 +638,9 @@ if( $deployNFSVM -eq 1 -or $deployNestedESXiVMs -eq 1 -or $deployVCSA -eq 1) {
     My-Logger "Connecting to Management vCenter Server $VIServer ..."
     $viConnection = Connect-VIServer $VIServer -User $VIUsername -Password $VIPassword -WarningAction SilentlyContinue
 
-    $datastore = Get-Datastore -Server $viConnection -Name $VMDatastore | Select -First 1
-    $resourcepool = Get-ResourcePool -Server $viConnection -Name $VMResourcePool
-    $cluster = Get-Cluster -Server $viConnection -Name $VMCluster
+    $datastore = Get-Datastore -Server $viConnection -Name $AVSDatastore | Select -First 1
+    $resourcepool = Get-ResourcePool -Server $viConnection -Name $AVSResourcePool
+    $cluster = Get-Cluster -Server $viConnection -Name $AVSCluster
     $datacenter = $cluster | Get-Datacenter
     $vmhost = $cluster | Get-VMHost | Select -First 1
 }
@@ -546,29 +652,29 @@ if($deployNestedESXiVMs -eq 1) {
 
         $ovfconfig = Get-OvfConfiguration $NestedESXiApplianceOVA
         $ovfNetworkLabel = ($ovfconfig.NetworkMapping | Get-Member -MemberType Properties).Name
-        $ovfconfig.NetworkMapping.$ovfNetworkLabel.value = $VMNetwork
+        $ovfconfig.NetworkMapping.$ovfNetworkLabel.value = $NSXSegName
         $ovfconfig.common.guestinfo.hostname.value = $VMName
         $ovfconfig.common.guestinfo.ipaddress.value = $VMIPAddress
-        $ovfconfig.common.guestinfo.netmask.value = $VMNetmask
-        $ovfconfig.common.guestinfo.gateway.value = $VMGateway
-        $ovfconfig.common.guestinfo.dns.value = $VMDNS
-        $ovfconfig.common.guestinfo.domain.value = $VMDomain
-        $ovfconfig.common.guestinfo.ntp.value = $VMNTP
+        $ovfconfig.common.guestinfo.netmask.value = $NSXSegNetmask
+        $ovfconfig.common.guestinfo.gateway.value = $VCSAGateway
+        $ovfconfig.common.guestinfo.dns.value = $NestedClusterDNS
+        $ovfconfig.common.guestinfo.domain.value = $VCSASSODomainName
+        $ovfconfig.common.guestinfo.ntp.value = $nestedntp
         $ovfconfig.common.guestinfo.syslog.value = $VMSyslog
-        $ovfconfig.common.guestinfo.password.value = $VMPassword
-        if($VMSSH -eq "true") {
-            $VMSSHVar = $true
+        $ovfconfig.common.guestinfo.password.value = $adminpassword
+        if($nestedssh -eq "true") {
+            $nestedsshVar = $true
         } else {
-            $VMSSHVar = $false
+            $nestedsshVar = $false
         }
-        $ovfconfig.common.guestinfo.ssh.value = $VMSSHVar
+        $ovfconfig.common.guestinfo.ssh.value = $nestedsshVar
 
         My-Logger "Deploying Nested ESXi VM $VMName ..."
         $vm = Import-VApp -Source $NestedESXiApplianceOVA -OvfConfiguration $ovfconfig -Name $VMName -Location $resourcepool -VMHost $vmhost -Datastore $datastore -DiskStorageFormat thin -Force
         
-        My-Logger "Adding vmnic2/vmnic3 to $VMNetwork ..."
-        New-NetworkAdapter -VM $vm -Type Vmxnet3 -NetworkName $VMNetwork -StartConnected -confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
-        New-NetworkAdapter -VM $vm -Type Vmxnet3 -NetworkName $VMNetwork -StartConnected -confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
+        My-Logger "Adding vmnic2/vmnic3 to $NSXSegName ..."
+        New-NetworkAdapter -VM $vm -Type Vmxnet3 -NetworkName $NSXSegName -StartConnected -confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
+        New-NetworkAdapter -VM $vm -Type Vmxnet3 -NetworkName $NSXSegName -StartConnected -confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
 
         My-Logger "Updating vCPU Count to $NestedESXivCPU & vMEM to $NestedESXivMEM GB ..."
         Set-VM -Server $viConnection -VM $vm -NumCpu $NestedESXivCPU -MemoryGB $NestedESXivMEM -Confirm:$false | Out-File -Append -LiteralPath $verboseLogFile
@@ -587,14 +693,14 @@ if($deployNestedESXiVMs -eq 1) {
 if($deployNFSVM -eq 1 -and $supportedStorageType.$SddcProvider -eq "NFS") {
     $ovfconfig = Get-OvfConfiguration $PhotonNFSOVA
     $ovfNetworkLabel = ($ovfconfig.NetworkMapping | Get-Member -MemberType Properties).Name
-    $ovfconfig.NetworkMapping.$ovfNetworkLabel.value = $VMNetwork
+    $ovfconfig.NetworkMapping.$ovfNetworkLabel.value = $NSXSegName
 
     $ovfconfig.common.guestinfo.hostname.value = $NFSVMHostname
     $ovfconfig.common.guestinfo.ipaddress.value = $NFSVMIPAddress
     $ovfconfig.common.guestinfo.netmask.value = $NFSVMPrefix
-    $ovfconfig.common.guestinfo.gateway.value = $VMGateway
-    $ovfconfig.common.guestinfo.dns.value = $VMDNS
-    $ovfconfig.common.guestinfo.domain.value = $VMDomain
+    $ovfconfig.common.guestinfo.gateway.value = $VCSAGateway
+    $ovfconfig.common.guestinfo.dns.value = $NestedClusterDNS
+    $ovfconfig.common.guestinfo.domain.value = $VCSASSODomainName
     $ovfconfig.common.guestinfo.root_password.value = $NFSVMRootPassword
     $ovfconfig.common.guestinfo.nfs_volume_name.value = $NFSVMVolumeLabel
     $ovfconfig.Common.disk2size.value = $NFSVMCapacity
@@ -616,7 +722,7 @@ if($deployVCSA -eq 1) {
         $config.'new_vcsa'.vc.hostname = $VIServer
         $config.'new_vcsa'.vc.username = $VIUsername
         $config.'new_vcsa'.vc.password = $VIPassword
-        $config.'new_vcsa'.vc.deployment_network = $VMNetwork
+        $config.'new_vcsa'.vc.deployment_network = $NSXSegName
         $config.'new_vcsa'.vc.datastore = $datastore
         $config.'new_vcsa'.vc.datacenter = $datacenter.name
         $config.'new_vcsa'.appliance.thin_disk_mode = $true
@@ -625,19 +731,19 @@ if($deployVCSA -eq 1) {
         $config.'new_vcsa'.network.ip_family = "ipv4"
         $config.'new_vcsa'.network.mode = "static"
         $config.'new_vcsa'.network.ip = $VCSAIPAddress
-        $config.'new_vcsa'.network.dns_servers[0] = $VMDNS
+        $config.'new_vcsa'.network.dns_servers[0] = $NestedClusterDNS
         $config.'new_vcsa'.network.prefix = $VCSAPrefix
-        $config.'new_vcsa'.network.gateway = $VMGateway
-        $config.'new_vcsa'.os.ntp_servers = $VMNTP
-        $config.'new_vcsa'.network.system_name = $VCSAHostname
-        $config.'new_vcsa'.os.password = $VCSARootPassword
-        if($VCSASSHEnable -eq "true") {
-            $VCSASSHEnableVar = $true
+        $config.'new_vcsa'.network.gateway = $VCSAGateway
+        $config.'new_vcsa'.os.ntp_servers = $nestedntp
+        $config.'new_vcsa'.network.system_name = $VCSAIPAddress
+        $config.'new_vcsa'.os.password = $adminpassword
+        if($nestedssh -eq "true") {
+            $nestedsshVar = $true
         } else {
-            $VCSASSHEnableVar = $false
+            $nestedsshVar = $false
         }
-        $config.'new_vcsa'.os.ssh_enable = $VCSASSHEnableVar
-        $config.'new_vcsa'.sso.password = $VCSASSOPassword
+        $config.'new_vcsa'.os.ssh_enable = $nestedsshVar
+        $config.'new_vcsa'.sso.password = $adminpassword
         $config.'new_vcsa'.sso.domain_name = $VCSASSODomainName
 
         # Hack due to JSON depth issue
@@ -647,7 +753,7 @@ if($deployVCSA -eq 1) {
         if($IsWindows) {
             My-Logger "Creating VCSA JSON Configuration file for deployment ..."
             $config | ConvertTo-Json | Set-Content -Path "$($ENV:Temp)\jsontemplate.json"
-            $target = "[`"$VMCluster`",`"Resources`",`"$VMResourcePool`"]"
+            $target = "[`"$AVSCluster`",`"Resources`",`"$AVSResourcePool`"]"
             (Get-Content -path "$($ENV:Temp)\jsontemplate.json" -Raw) -replace '"REPLACE-ME"',$target | Set-Content -path "$($ENV:Temp)\jsontemplate.json"
 
             My-Logger "Deploying the VCSA ..."
@@ -673,7 +779,7 @@ if($moveVMsIntovApp -eq 1) {
 
     if(-Not (Get-Folder $VMFolder -ErrorAction Ignore)) {
         My-Logger "Creating VM Folder $VMFolder ..."
-        $folder = New-Folder -Name $VMFolder -Server $viConnection -Location (Get-Datacenter $VMDatacenter | Get-Folder vm)
+        $folder = New-Folder -Name $VMFolder -Server $viConnection -Location (Get-Datacenter $AVSDatacenter | Get-Folder vm)
     }
 
     if($deployNFSVM -eq 1 -and $supportedStorageType.$SddcProvider -eq "NFS") {
@@ -707,7 +813,7 @@ if( $deployNFSVM -eq 1 -or $deployNestedESXiVMs -eq 1 -or $deployVCSA -eq 1) {
 
 if($setupNewVC -eq 1) {
     My-Logger "Connecting to the new VCSA ..."
-    $vc = Connect-VIServer $VCSAIPAddress -User "administrator@$VCSASSODomainName" -Password $VCSASSOPassword -WarningAction SilentlyContinue -Force
+    $vc = Connect-VIServer $VCSAIPAddress -User "administrator@$VCSASSODomainName" -Password $adminpassword -WarningAction SilentlyContinue -Force
 
     $d = Get-Datacenter -Server $vc $NewVCDatacenterName -ErrorAction Ignore
     if( -Not $d) {
@@ -736,7 +842,7 @@ if($setupNewVC -eq 1) {
                 $targetVMHost = $VMName
             }
             My-Logger "Adding ESXi host $targetVMHost to Cluster ..."
-            Add-VMHost -Server $vc -Location (Get-Cluster -Name $NewVCVSANClusterName) -User "root" -Password $VMPassword -Name $targetVMHost -Force | Out-File -Append -LiteralPath $verboseLogFile
+            Add-VMHost -Server $vc -Location (Get-Cluster -Name $NewVCVSANClusterName) -User "root" -Password $adminpassword -Name $targetVMHost -Force | Out-File -Append -LiteralPath $verboseLogFile
         }
     }
 
@@ -771,7 +877,7 @@ if($setupNewVC -eq 1) {
     if($configureVDS -eq 1) {
         $vds = New-VDSwitch -Server $vc  -Name $NewVCVDSName -Location (Get-Datacenter -Name $NewVCDatacenterName) -Mtu 1600
 
-        New-VDPortgroup -Server $vc -Name $NewVCMgmtDVPGName -Vds $vds | Out-File -Append -LiteralPath $verboseLogFile
+      #  New-VDPortgroup -Server $vc -Name $NewVCMgmtDVPGName -Vds $vds | Out-File -Append -LiteralPath $verboseLogFile
         New-VDPortgroup -Server $vc -Name $NewVCWorkloadDVPGName -Vds $vds | Out-File -Append -LiteralPath $verboseLogFile
 
         foreach ($vmhost in Get-Cluster -Server $vc | Get-VMHost) {
