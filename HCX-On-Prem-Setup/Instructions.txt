@@ -1,0 +1,8 @@
+Written By: Trevor Davis
+www.virtualworkloads.com
+@vTrevorDavis
+
+Download both of these files.
+Edit the Excel file ONLY.  No need to edit the powershell file.
+Instructions are included in the Excel file.  All variables are entered there.
+For this script to work the AVS private cloud will need to first be deployed, and the HCX OVA downloaded to your local machine from the HCX Manager in AVS.
