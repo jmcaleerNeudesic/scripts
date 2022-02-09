@@ -7,7 +7,8 @@ Write-Host -ForegroundColor Green "
 Success: The Azure VMware Solution Private Cloud Deployment Has Begun
 "
 #New-AzVMWarePrivateCloud -Name $pcname -ResourceGroupName $rgfordeployment -SubscriptionId $sub -NetworkBlock $addressblock -Sku $skus -Location $regionfordeployment -NsxtPassword $nsxpassword -VcenterPassword $vcenterpassword -managementclustersize $numberofhosts -Internet $internet -NoWait -AcceptEULA
-New-AzVMWarePrivateCloud -Name $pcname -ResourceGroupName $rgfordeployment -SubscriptionId $sub -NetworkBlock $addressblock -Sku $skus -Location $regionfordeployment -managementclustersize $numberofhosts -Internet $internet -NoWait -AcceptEULA
+$privateclouddeploymentcommand = New-AzVMWarePrivateCloud -Name $pcname -ResourceGroupName $rgfordeployment -SubscriptionId $sub -NetworkBlock $addressblock -Sku $skus -Location $regionfordeployment -managementclustersize $numberofhosts -Internet $internet -NoWait -AcceptEULA
+write-host $privateclouddeploymentcommand
 
 Write-Host -foregroundcolor Magenta "
 The Azure VMware Solution Private Cloud $pcname deployment is underway and will take approximately 4 hours.
