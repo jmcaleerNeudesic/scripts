@@ -1,5 +1,4 @@
-$regionfordeployment = "Southeast Asia"
-$RGNewOrExisting = "New"
+..\avspcdeploy-variables.ps1
 
 if ( "Existing" -eq $RGNewOrExisting )
 {

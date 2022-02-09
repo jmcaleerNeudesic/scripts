@@ -1,4 +1,4 @@
-$regionfordeployment = "Southeast Asia"
+..\avspcdeploy-variables.ps1
 
 
 Write-Host -ForegroundColor Yellow  "
