@@ -6,18 +6,17 @@ $deploymentkickofftime = get-date -format "hh:mm"
 Write-Host -ForegroundColor Green "
 Success: The Azure VMware Solution Private Cloud Deployment Has Begun
 "
-New-AzVMWarePrivateCloud -Name $pcname -ResourceGroupName $rgfordeployment -SubscriptionId $sub -NetworkBlock $addressblock -Sku $skus -Location $regionfordeployment -NsxtPassword $nsxpassword -VcenterPassword $vcenterpassword -managementclustersize $numberofhosts -Internet $internet -NoWait -AcceptEULA
-#New-AzVMWarePrivateCloud -Name $pcname -ResourceGroupName $rgfordeployment -SubscriptionId $sub -NetworkBlock $addressblock -Sku $skus -Location $regionfordeployment -NsxtPassword $nsxpassword -VcenterPassword $vcenterpassword -managementclustersize $numberofhosts -Internet $internet -NoWait -WhatIf
+#New-AzVMWarePrivateCloud -Name $pcname -ResourceGroupName $rgfordeployment -SubscriptionId $sub -NetworkBlock $addressblock -Sku $skus -Location $regionfordeployment -NsxtPassword $nsxpassword -VcenterPassword $vcenterpassword -managementclustersize $numberofhosts -Internet $internet -NoWait -AcceptEULA
+New-AzVMWarePrivateCloud -Name $pcname -ResourceGroupName $rgfordeployment -SubscriptionId $sub -NetworkBlock $addressblock -Sku $skus -Location $regionfordeployment -managementclustersize $numberofhosts -Internet $internet -NoWait -AcceptEULA
 
 Write-Host -foregroundcolor Magenta "
-The Azure VMware Solution Private Cloud $pcname deployment is underway and will take approximately 4 hours
+The Azure VMware Solution Private Cloud $pcname deployment is underway and will take approximately 4 hours.
 "
 Write-Host -foregroundcolor Yellow "
 The status of the deployment will update every 5 minutes.
 "
 
-#Start-Sleep -Seconds 300
-Start-Sleep -Seconds 120
+Start-Sleep -Seconds 300
 
 $provisioningstate = get-azvmwareprivatecloud -Name $pcname -ResourceGroupName $rgfordeployment
 $currentprovisioningstate = $provisioningstate.ProvisioningState
@@ -28,8 +27,7 @@ while ("Succeeded" -ne $currentprovisioningstate)
 {
 $timeStamp = Get-Date -Format "hh:mm"
 "$timestamp - Current Status: $currentprovisioningstate "
-#Start-Sleep -Seconds 300
-Start-Sleep -Seconds 10
+Start-Sleep -Seconds 300
 $provisioningstate = get-azvmwareprivatecloud -Name $pcname -ResourceGroupName $rgfordeployment
 $currentprovisioningstate = $provisioningstate.ProvisioningState
 }
