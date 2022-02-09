@@ -1,23 +1,19 @@
-..\avspcdeploy-variables.ps1
+$variables = Invoke-WebRequest https://raw.githubusercontent.com/Trevor-Davis/scripts/main/AVS%20Private%20Cloud%20Deployment/avspcdeploy-variables.ps1
+Invoke-Expression $($variables.Content)
 
 if ( "Existing" -eq $RGNewOrExisting )
 {
-    $AVSRG = "MyTestRG-deleteme"
-
     write-host -foregroundcolor Green = "
-AVS Private Cloud Resource Group is $AVSRG
+AVS Private Cloud Resource Group is $rgfordeployment
 "
 }
 
 if ( "New" -eq $RGNewOrExisting){
-    $AVSRG = "AVS RG Name"
-    New-AzResourceGroup -Name $AVSRG -Location $regionfordeployment
+    New-AzResourceGroup -Name $rgfordeployment -Location $regionfordeployment
 
     write-host -foregroundcolor Green = "
-Success: AVS Private Cloud Resource Group $AVSRG Created
+Success: AVS Private Cloud Resource Group $rgfordeployment Created
 "
     
 
 }
-
-write-host $sub

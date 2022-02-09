@@ -1,10 +1,11 @@
-..\avspcdeploy-variables.ps1
+$variables = Invoke-WebRequest https://raw.githubusercontent.com/Trevor-Davis/scripts/main/AVS%20Private%20Cloud%20Deployment/avspcdeploy-variables.ps1
+Invoke-Expression $($variables.Content)
 
 
 Write-Host -ForegroundColor Yellow  "
 Validating Subscription Readiness ..." 
 
-$quota = Test-AzVMWareLocationQuotaAvailability -Location $regionfordeployment
+$quota = Test-AzVMWareLocationQuotaAvailability -Location $regionfordeployment -SubscriptionId $sub
 
 if ("Enabled" -eq $quota.Enabled)
 {
