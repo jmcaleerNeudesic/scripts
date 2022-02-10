@@ -9,7 +9,7 @@ $currentprovisioningstate = $provisioningstate.CircuitConnectionStatus
 
 while ("Connected" -ne $currentprovisioningstate)
 {
-write-Host -Fore "Current Status of Global Reach Connection: $currentprovisioningstate"
+write-Host -ForegroundColor Yellow "Current Status of Global Reach Connection: $currentprovisioningstate"
 Start-Sleep -Seconds 10
 $provisioningstate = Get-AzVMwareGlobalReachConnection -PrivateCloudName $pcname -ResourceGroupName $rgfordeployment
 $currentprovisioningstate = $provisioningstate.CircuitConnectionStatus}
