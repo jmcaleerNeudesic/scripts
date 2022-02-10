@@ -2,7 +2,7 @@ $variables = Invoke-WebRequest https://raw.githubusercontent.com/Trevor-Davis/sc
 Invoke-Expression $($variables.Content)
 
 Write-Host -ForegroundColor Green "
-Success: The Azure VMware Solution Private Cloud Deployment Has Begun ... Deployment Status Will Begin To Show Shortly
+Success: The Azure VMware Solution Private Cloud Deployment Has Begun
 "
 Write-Host -ForegroundColor White "
 Deployment Status Will Begin To Show Shortly

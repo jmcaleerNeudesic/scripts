@@ -2,7 +2,7 @@ $deployvariablesvariables = Invoke-WebRequest https://raw.githubusercontent.com/
 Invoke-Expression $($deployvariablesvariables.Content)
 
 Select-AzSubscription -SubscriptionId $sub
-New-AzVMwareGlobalReachConnection -Name $NameOfOnPremExRCircuit -PrivateCloudName $pcname -ResourceGroupName $rgfordeployment -AuthorizationKey "dc9dc896-40b1-46b6-8349-9411833a8abd" -PeerExpressRouteResourceId "/subscriptions/be8569eb-b087-4090-a1e2-ac12df4818d8/resourceGroups/tnt43-cust-p01-southeastasia/providers/Microsoft.Network/expressRouteCircuits/tnt43-cust-p01-southeastasia-er"
+New-AzVMwareGlobalReachConnection -Name $NameOfOnPremExRCircuit -PrivateCloudName $pcname -ResourceGroupName $rgfordeployment -AuthorizationKey "490b170e-1ae8-404d-bafc-333eaa0e6cde" -PeerExpressRouteResourceId "/subscriptions/52d4e37e-0e56-4016-98de-fe023475b435/resourceGroups/tnt15-cust-p01-australiaeast/providers/Microsoft.Network/expressRouteCircuits/tnt15-cust-p01-australiaeast-er"
 
 $provisioningstate = Get-AzVMwareGlobalReachConnection -PrivateCloudName $pcname -ResourceGroupName $rgfordeployment
 $currentprovisioningstate = $provisioningstate.CircuitConnectionStatus
