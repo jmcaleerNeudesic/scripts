@@ -1,3 +1,5 @@
+$progressPreference = 'silentlyContinue'
+
 ###############################
 #Azure Login Function
 ###############################
