@@ -1,12 +1,47 @@
-$TTL    604800
-@       IN      SOA     ns.virtualworkloads.trevor. admin.virtualworkloads.trevor. (
-                              2        ; Serial
-                         604800        ; Refresh
-                          86400        ; Retry
-                        2419200        ; Expire
-                         604800 )      ; Negative Cache TTL
-;
-@       IN      NS      ns.virtualworkloads.trevor.
-@       IN      A       127.0.0.1
-ns      IN      A       127.0.0.1
-hcx     IN      A       137.52.224.11
+###############################
+#Azure Login Function
+###############################
+
+$filename = "azurelogin-function.ps1"
+Invoke-WebRequest -uri "https://raw.githubusercontent.com/Trevor-Davis/AzureScripts/main/Functions/$filename" -OutFile $env:TEMP\AVSDeploy\$filename
+. $env:TEMP\AVSDeploy\$filename
+
+#######################################################################################
+#FUNCTIONS
+#######################################################################################
+$progressPreference = 'silentlyContinue'
+
+$buildhol_ps1 = "Yes"
+$avsdeploy_ps1 = "Yes"
+$filelistarray = @()
+$filelistarray += $buildhol_ps1, $avsdeploy_ps1
+$filelistarray
+$skipvariables = $filelistarray
+
+
+
+
+
+if ($buildhol_ps1 -notmatch "Yes" -and $avsdeploy_ps1 -notmatch "Yes"
+
+$array = @("azureloginfunction.ps1", "checkavsvcentercommunicationfunction.ps1", "getfilesizefunction.ps1") 
+foreach ($filename in $array){ 
+  Write-Host "Downloading $filename"
+  Invoke-WebRequest -uri "https://raw.githubusercontent.com/Trevor-Davis/Azure-VMware-Solution/master/AVSSimplifiedDeployment/$filename" -OutFile $env:TEMP\AVSDeploy\$filename
+  . $env:TEMP\AVSDeploy\$filename
+}
+
+
+
+
+
+, "checkavsvcentercommunicationfunction.ps1", "getfilesizefunction.ps1"
+
+Write-Host "$$filelistarray"
+
+$buildhol_ps1 -notmatch "Yes" -and $avsdeploy_ps1 -notmatch "Yes"
+
+
+){
+
+
