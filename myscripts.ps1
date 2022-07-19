@@ -11,8 +11,6 @@ Invoke-WebRequest -uri "https://raw.githubusercontent.com/Trevor-Davis/AzureScri
 #######################################################################################
 $progressPreference = 'silentlyContinue'
 
-$buildhol_ps1 = "Yes"
-$avsdeploy_ps1 = "Yes"
 $filelistarray = @()
 $filelistarray += $buildhol_ps1, $avsdeploy_ps1
 $filelistarray
