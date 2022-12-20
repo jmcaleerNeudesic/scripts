@@ -1,2 +1,4 @@
-Connect-AzAccount -Subscription 3988f2d0-8066-42fa-84f2-5d72f80901da
-New-AzResourceGroup -Name RG01 -Location "West US"
+$filename = "Function-writeingreen.ps1"
+write-host "Downloading" $filename
+Invoke-WebRequest -uri "https://raw.githubusercontent.com/Trevor-Davis/AzureScripts/main/Functions/$filename" -OutFile $env:TEMP\$folder\$filename
+. $env:TEMP\$folder\$filename
