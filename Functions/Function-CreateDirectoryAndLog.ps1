@@ -9,7 +9,7 @@ function createdirectoryandlog {
     $test = Test-Path -Path $folder\$foldername
     
     if ($test -eq "True"){
-Write-Host -ForegroundColor Blue "Folder $folder Already Exists"}
+Write-Host -ForegroundColor Blue "Folder $folder\$foldername Already Exists"}
 
 else {
 
