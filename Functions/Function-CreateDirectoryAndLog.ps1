@@ -18,7 +18,7 @@ mkdir $folder\$foldername
 }
 
 #Start Logging
-Start-Transcript -Path $folder\$logfilename.log -Append
+Start-Transcript -Path $folder\$foldername\$logfilename".log" -Append
     }
 
 
