@@ -1,4 +1,4 @@
-$variables = Invoke-WebRequest https://raw.githubusercontent.com/jmcaleerNeudesic/scripts/main/AVS%20Private%20Cloud%20Deployment/avspcdeploy-variables.ps1
+$variables = "C:\Users\Josh.Mcaleer\OneDrive - Neudesic\Documents\GitHub\scripts\AVS Private Cloud Deployment"
 Invoke-Expression $($variables.Content)
 
 Write-Host -ForegroundColor Green "
