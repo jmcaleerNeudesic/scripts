@@ -1,4 +1,4 @@
-$variables = "C:\Users\Josh.Mcaleer\OneDrive - Neudesic\Documents\GitHub\scripts\AVS Private Cloud Deployment"
+$variables = "C:\Users\Josh.Mcaleer\OneDrive - Neudesic\Documents\GitHub\scripts\AVS Private Cloud Deployment\avspcdeploy-variables.ps1"
 Invoke-Expression $($variables.Content)
 
 Write-Host -ForegroundColor Green "

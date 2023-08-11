@@ -1,4 +1,4 @@
-$deployvariablesvariables = "C:\Users\Josh.Mcaleer\OneDrive - Neudesic\Documents\GitHub\scripts\AVS Private Cloud Deployment"
+$deployvariablesvariables = "C:\Users\Josh.Mcaleer\OneDrive - Neudesic\Documents\GitHub\scripts\AVS Private Cloud Deployment\avspcdeploy-variables.ps1"
 Invoke-Expression $($deployvariablesvariables.Content)
 
 $myprivatecloud = Get-AzVMWarePrivateCloud -Name $pcname -ResourceGroupName $rgfordeployment
